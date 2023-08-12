@@ -1,54 +1,62 @@
 package pt.cocus.cocuschallenge.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
-import pt.cocus.cocuschallenge.model.UsernameModel;
+import pt.cocus.cocuschallenge.model.UserDto;
 import pt.cocus.cocuschallenge.service.UserReposServiceImpl;
-
-import java.net.URISyntaxException;
-import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/repos")
 @AllArgsConstructor
+@Slf4j
 public class ReposController {
     private final UserReposServiceImpl userReposService;
 
     @GetMapping
-    public ResponseEntity<?> getRepos(@RequestBody UsernameModel usernameModel, @RequestHeader("Accept") String accept) {
+    public ResponseEntity<?> getRepos(@RequestBody UserDto userDto, @RequestHeader(HttpHeaders.ACCEPT) String accept) {
 
         if (!accept.equals("*/*") && !accept.equals ("application/json")) {
+            log.error("Header Accept format not compatible");
             return ResponseEntity
                     .status(HttpStatus.NOT_ACCEPTABLE)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body("{\"status\": 404, \"Message\":\"Header Accept format not compatible\"}");
+                    .body("{\"status\": 406, \"Message\":\"Header Accept format not compatible\"}");
         }
         try {
 
-            return ResponseEntity.ok(userReposService.getUserRepos(usernameModel));
+            return ResponseEntity.ok(userReposService.getUserRepos(userDto));
 
-        } catch (URISyntaxException | JsonProcessingException | InterruptedException | ExecutionException e) {
-
-            return ResponseEntity.internalServerError()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body("{\"status\": 500, \"Message\":\"Internal Error\"}");
 
         } catch (HttpClientErrorException e) {
 
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+
+                log.error("User not found: " + e.getMessage());
+
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body("{\"status\": 404, \"Message\":\"User not found\"}");
             }
+
+            log.error("Internal Error: " + e.getMessage());
+
             return ResponseEntity.internalServerError()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body("{\"status\": 500, \"Message\":\"Internal Error\"}");
 
+        } catch (Exception e) {
+
+            log.error("Internal Error: " + e.getMessage());
+
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body("{\"status\": 500, \"Message\":\"Internal Error\"}");
         }
     }
 }

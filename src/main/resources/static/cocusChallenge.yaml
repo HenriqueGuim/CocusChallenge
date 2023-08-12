@@ -1,0 +1,38 @@
+openapi: 3.0.1
+info:
+  title: Cocus Challenge
+  version: v0
+servers:
+  - url: http://localhost:8080
+    description: Generated server url
+paths:
+  /repos:
+    get:
+      tags:
+        - repos-controller
+      operationId: getRepos
+      parameters:
+        - name: userDto
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserDto'
+        - name: Accept
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+components:
+  schemas:
+    UserDto:
+      type: object
+      properties:
+        username:
+          type: string

@@ -4,6 +4,7 @@ package pt.cocus.cocuschallenge.model;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import pt.cocus.cocuschallenge.utils.Utils;
@@ -20,7 +21,7 @@ import java.util.concurrent.Future;
 
 import static java.util.concurrent.Executors.newCachedThreadPool;
 
-
+@Slf4j
 public class RepoModel {
     public String name;
     public List<Branch> branches;
@@ -28,17 +29,18 @@ public class RepoModel {
 
     private final ExecutorService executorService = newCachedThreadPool();
 
-    public RepoModel(String repoName, String userName) throws URISyntaxException, JsonProcessingException, ExecutionException, InterruptedException {
+    public RepoModel(String repoName) {
         this.name = repoName;
         this.branches = new CopyOnWriteArrayList<>();
-        getBranches(userName);
     }
 
-    private void getBranches(String username) throws URISyntaxException, JsonProcessingException, ExecutionException, InterruptedException {
+    public void retrieveBranchesForRepo(String username) throws URISyntaxException, JsonProcessingException, ExecutionException, InterruptedException {
         Queue<Future<?>> listOfFutures = new LinkedList<>();
 
         int page = 1;
         while (true) {
+            log.info("Getting branches for repo: " + this.name + " page: " + page);
+
             JsonNode repos = getBranchesFromGit(username, page);
             page++;
 
@@ -52,6 +54,7 @@ public class RepoModel {
             )));
         }
 
+        log.info(String.format("Waiting for all branch of repo %s threads to finish", this.name));
         while (!listOfFutures.isEmpty()) {
             Future<?> future = listOfFutures.poll();
 
@@ -60,7 +63,7 @@ public class RepoModel {
         }
     }
 
-    public JsonNode getBranchesFromGit(String username, int pageNumber) throws URISyntaxException, JsonProcessingException {
+    private JsonNode getBranchesFromGit(String username, int pageNumber) throws URISyntaxException, JsonProcessingException {
 
         String GITHUB_API_URL_BRANCHS = "https://api.github.com/repos/{username}/{repo}/branches";
         URI uri = new URI(String.format("%s?page=%d",
@@ -77,11 +80,11 @@ public class RepoModel {
         return mapper.readTree(response.getBody());
     }
 
-    public static class HandleRepo implements Runnable {
+    private static class HandleRepo implements Runnable {
         private final JsonNode branch;
         private final List<Branch> branches;
 
-        public HandleRepo(JsonNode repo, List<Branch> branches) {
+        private HandleRepo(JsonNode repo, List<Branch> branches) {
             this.branch = repo;
             this.branches = branches;
         }

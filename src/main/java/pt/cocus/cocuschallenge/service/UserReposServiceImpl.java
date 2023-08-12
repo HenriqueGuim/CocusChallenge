@@ -9,9 +9,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import pt.cocus.cocuschallenge.model.User;
 import pt.cocus.cocuschallenge.model.RepoModel;
-import pt.cocus.cocuschallenge.model.UsernameModel;
+import pt.cocus.cocuschallenge.model.User;
+import pt.cocus.cocuschallenge.model.UserDto;
 import pt.cocus.cocuschallenge.utils.Utils;
 
 import java.net.URI;
@@ -26,18 +26,20 @@ import static java.util.concurrent.Executors.newCachedThreadPool;
 
 @Service
 @Slf4j
-public class UserReposServiceImpl {
+public class UserReposServiceImpl implements UserReposService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ExecutorService executorService = newCachedThreadPool();
 
 
-    public User getUserRepos(@NotNull UsernameModel userName) throws URISyntaxException, JsonProcessingException, InterruptedException, ExecutionException {
+    @Override
+    public User getUserRepos(@NotNull UserDto userName) throws URISyntaxException, JsonProcessingException, InterruptedException, ExecutionException {
         User user = new User(userName.username());
         Queue<Future<?>> listOfFutures = new LinkedList<>();
 
         log.info("Getting repos for user: " + userName.username());
         int page = 1;
         while (true) {
+            log.info("Getting repos for user: " + userName.username() + " page: " + page);
             JsonNode repos = getReposByPage(userName.username(), page);
             page++;
 
@@ -45,15 +47,13 @@ public class UserReposServiceImpl {
                 break;
             }
 
-            repos.forEach(repo -> {
-                listOfFutures
-                        .add(executorService.submit(
-                                new HandleRepo(repo, user)
-                        )
-                );
-            });
+            repos.forEach(repo -> listOfFutures
+                    .add(executorService.submit(
+                            new HandleRepo(repo, user)
+                    )
+            ));
         }
-
+        log.info(String.format("Waiting for all threads of username: %s to finish", userName.username()));
         while (!listOfFutures.isEmpty()) {
             Future<?> future = listOfFutures.poll();
 
@@ -64,8 +64,8 @@ public class UserReposServiceImpl {
         return user;
     }
 
+    @Override
     public JsonNode getReposByPage(String username, int pageNumber) throws URISyntaxException, JsonProcessingException {
-
         String GITHUB_API_URL_REPOS = "https://api.github.com/users/{username}/repos";
         URI uri = new URI(String.format("%s?page=%d",
                 GITHUB_API_URL_REPOS.replace("{username}", username),
@@ -89,12 +89,14 @@ public class UserReposServiceImpl {
         }
 
         @SneakyThrows
-        @Override public void run() {
-            RepoModel repoModel = new RepoModel(repo.get("name").asText(), user.getUsername());
+        @Override
+        public void run() {
+            if (repo.get("fork").asBoolean()) {
+                return;
+            }
+            RepoModel repoModel = new RepoModel(repo.get("name").asText());
+            repoModel.retrieveBranchesForRepo(user.getUsername());
             user.addRepo(repoModel);
         }
     }
-
-
-
 }
