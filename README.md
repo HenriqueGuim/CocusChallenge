@@ -99,3 +99,6 @@ Or to access the YAML file
 - External API
 - Swagger
 - GitHub
+
+## Notes
+- The integration tests report is in the following path: src/test/Integration Test API Github repos.pdf
