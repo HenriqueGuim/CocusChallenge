@@ -8,7 +8,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class User {
 
     private final String username;
-    private CopyOnWriteArrayList<RepoModel> repos;
+    private final CopyOnWriteArrayList<RepoModel> repos;
     public User(String username) {
         this.username = username;
         this.repos = new CopyOnWriteArrayList<>();

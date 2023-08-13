@@ -4,7 +4,9 @@ FROM eclipse-temurin:20-jdk-jammy
 
 WORKDIR /app
 
-ENV GITHUB_TOKEN=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
+ARG GITHUB_TOKEN
+
+ENV GITHUB_TOKEN=${GITHUB_TOKEN}
 
 COPY .mvn/ .mvn
 COPY mvnw pom.xml ./

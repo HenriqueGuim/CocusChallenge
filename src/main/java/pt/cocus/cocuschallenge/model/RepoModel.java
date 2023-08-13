@@ -4,6 +4,7 @@ package pt.cocus.cocuschallenge.model;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -22,16 +23,16 @@ import java.util.concurrent.Future;
 import static java.util.concurrent.Executors.newCachedThreadPool;
 
 @Slf4j
+@NoArgsConstructor
 public class RepoModel {
     public String name;
-    public List<Branch> branches;
-    private final RestTemplate restTemplate = new RestTemplate();
+    public List<Branch> branches = new CopyOnWriteArrayList<>();
+    public transient final RestTemplate restTemplate = new RestTemplate();
 
     private final ExecutorService executorService = newCachedThreadPool();
 
     public RepoModel(String repoName) {
         this.name = repoName;
-        this.branches = new CopyOnWriteArrayList<>();
     }
 
     public void retrieveBranchesForRepo(String username) throws URISyntaxException, JsonProcessingException, ExecutionException, InterruptedException {
@@ -41,16 +42,16 @@ public class RepoModel {
         while (true) {
             log.info("Getting branches for repo: " + this.name + " page: " + page);
 
-            JsonNode repos = getBranchesFromGit(username, page);
+            JsonNode branches = getBranchesFromGit(username, page);
             page++;
 
-            if (repos.isEmpty()) {
+            if (branches.isEmpty()) {
                 break;
             }
 
-            repos.forEach(branch -> listOfFutures
+            branches.forEach(branch -> listOfFutures
                     .add(executorService.submit(
-                            new HandleRepo(branch, this.branches)
+                            new HandleBranches(branch, this.branches)
             )));
         }
 
@@ -80,11 +81,11 @@ public class RepoModel {
         return mapper.readTree(response.getBody());
     }
 
-    private static class HandleRepo implements Runnable {
+    private static class HandleBranches implements Runnable {
         private final JsonNode branch;
         private final List<Branch> branches;
 
-        private HandleRepo(JsonNode repo, List<Branch> branches) {
+        private HandleBranches(JsonNode repo, List<Branch> branches) {
             this.branch = repo;
             this.branches = branches;
         }

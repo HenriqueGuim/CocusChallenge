@@ -27,7 +27,7 @@ import static java.util.concurrent.Executors.newCachedThreadPool;
 @Service
 @Slf4j
 public class UserReposServiceImpl implements UserReposService {
-    private final RestTemplate restTemplate = new RestTemplate();
+    public final RestTemplate restTemplate = new RestTemplate();
     private final ExecutorService executorService = newCachedThreadPool();
 
 
@@ -70,9 +70,8 @@ public class UserReposServiceImpl implements UserReposService {
         URI uri = new URI(String.format("%s?page=%d",
                 GITHUB_API_URL_REPOS.replace("{username}", username),
                 pageNumber));
-        ResponseEntity<String> response;
 
-        response = Utils.apiGetCallToGithub(uri, restTemplate);
+        ResponseEntity<String> response = Utils.apiGetCallToGithub(uri, restTemplate);
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -88,13 +87,17 @@ public class UserReposServiceImpl implements UserReposService {
             this.user = user;
         }
 
+        public RepoModel createRepoModel(String repoName) {
+            return new RepoModel(repoName);
+        }
+
         @SneakyThrows
         @Override
         public void run() {
             if (repo.get("fork").asBoolean()) {
                 return;
             }
-            RepoModel repoModel = new RepoModel(repo.get("name").asText());
+            RepoModel repoModel = createRepoModel(repo.get("name").asText());
             repoModel.retrieveBranchesForRepo(user.getUsername());
             user.addRepo(repoModel);
         }
