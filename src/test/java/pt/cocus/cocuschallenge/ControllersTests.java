@@ -36,33 +36,18 @@ public class ControllersTests {
     @Test
     void testGetReposValidRequest() throws URISyntaxException, ExecutionException, JsonProcessingException, InterruptedException {
         UserDto userDto = new UserDto("TestUserName");
-        String acceptheader = "application/json";
         User expectedUser = new User(userDto.username());
         ResponseEntity<?> expectedResponse = ResponseEntity.ok(expectedUser);
 
         when(this.userReposService.getUserRepos(userDto)).thenReturn(expectedUser);
 
-        assertThat(this.reposController.getRepos(userDto,acceptheader)).isEqualTo(expectedResponse);
-
-    }
-
-    @Test
-    void testGetReposInvalidAcceptHeaderRequest() {
-        UserDto userDto = new UserDto("TestUserName");
-        String acceptheader = "application/xml";
-        ResponseEntity<?> expectedResponse = ResponseEntity
-                .status(HttpStatus.NOT_ACCEPTABLE)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body("{\"status\": 406, \"Message\":\"Header Accept format not compatible\"}");
-
-        assertThat(this.reposController.getRepos(userDto,acceptheader)).isEqualTo(expectedResponse);
+        assertThat(this.reposController.getRepos(userDto)).isEqualTo(expectedResponse);
 
     }
 
     @Test
     void testGetReposInvalidNameRequest() throws URISyntaxException, ExecutionException, JsonProcessingException, InterruptedException {
         UserDto userDto = new UserDto("TestUserName");
-        String acceptheader = "application/json";
         ResponseEntity<?> expectedResponse = ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -70,35 +55,33 @@ public class ControllersTests {
 
         when(this.userReposService.getUserRepos(userDto)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
-        assertThat(this.reposController.getRepos(userDto,acceptheader)).isEqualTo(expectedResponse);
+        assertThat(this.reposController.getRepos(userDto)).isEqualTo(expectedResponse);
 
     }
 
     @Test
     void testGetReposInternalApiCallError() throws URISyntaxException, ExecutionException, JsonProcessingException, InterruptedException {
         UserDto userDto = new UserDto("TestUserName");
-        String acceptheader = "application/json";
         ResponseEntity<?> expectedResponse = ResponseEntity.internalServerError()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("{\"status\": 500, \"Message\":\"Internal Error\"}");
 
         when(this.userReposService.getUserRepos(userDto)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_ACCEPTABLE));
 
-        assertThat(this.reposController.getRepos(userDto,acceptheader)).isEqualTo(expectedResponse);
+        assertThat(this.reposController.getRepos(userDto)).isEqualTo(expectedResponse);
 
     }
 
     @Test
     void testGetReposInternalError() throws URISyntaxException, ExecutionException, JsonProcessingException, InterruptedException {
         UserDto userDto = new UserDto("TestUserName");
-        String acceptheader = "application/json";
         ResponseEntity<?> expectedResponse = ResponseEntity.internalServerError()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("{\"status\": 500, \"Message\":\"Internal Error\"}");
 
         when(this.userReposService.getUserRepos(userDto)).thenThrow(new URISyntaxException("testInput","testReason"));
 
-        assertThat(this.reposController.getRepos(userDto,acceptheader)).isEqualTo(expectedResponse);
+        assertThat(this.reposController.getRepos(userDto)).isEqualTo(expectedResponse);
     }
 
 

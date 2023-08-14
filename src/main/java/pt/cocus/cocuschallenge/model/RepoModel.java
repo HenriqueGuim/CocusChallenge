@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-import pt.cocus.cocuschallenge.utils.Utils;
+import pt.cocus.cocuschallenge.client.GitHubClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -74,7 +74,7 @@ public class RepoModel {
                 pageNumber)
         );
 
-        ResponseEntity<String> response = Utils.apiGetCallToGithub(uri, restTemplate);
+        ResponseEntity<String> response = GitHubClient.apiGetCallToGithub(uri, restTemplate);
 
         ObjectMapper mapper = new ObjectMapper();
 

@@ -11,7 +11,7 @@ import pt.cocus.cocuschallenge.model.RepoModel;
 import pt.cocus.cocuschallenge.model.User;
 import pt.cocus.cocuschallenge.model.UserDto;
 import pt.cocus.cocuschallenge.service.UserReposServiceImpl;
-import pt.cocus.cocuschallenge.utils.Utils;
+import pt.cocus.cocuschallenge.client.GitHubClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -56,8 +56,8 @@ public class UserRepoServiceImplTests {
         URI expectedUri = URI.create("https://api.github.com/users/"+username+"/repos?page="+page);
         JsonNode ExpectedReturn = new ObjectMapper().readTree("{\"test\":\"test\"}");
 
-        try (MockedStatic<Utils> mockUtils = mockStatic(Utils.class)) {
-            mockUtils.when(() -> Utils.apiGetCallToGithub(expectedUri, userReposService.restTemplate)).thenReturn(returnMock);
+        try (MockedStatic<GitHubClient> mockUtils = mockStatic(GitHubClient.class)) {
+            mockUtils.when(() -> GitHubClient.apiGetCallToGithub(expectedUri, userReposService.restTemplate)).thenReturn(returnMock);
 
             assertThat(this.userReposService.getReposByPage(username,page)).usingRecursiveComparison().isEqualTo(ExpectedReturn);
         }

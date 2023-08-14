@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import pt.cocus.cocuschallenge.model.Branch;
 import pt.cocus.cocuschallenge.model.RepoModel;
-import pt.cocus.cocuschallenge.utils.Utils;
+import pt.cocus.cocuschallenge.client.GitHubClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -32,9 +32,9 @@ public class RepoModelTests {
 
 
 
-        try (MockedStatic<Utils> mockUtils = mockStatic(Utils.class)) {
-            mockUtils.when(() -> Utils.apiGetCallToGithub(expectedUri1, repoModel.restTemplate)).thenReturn(firstReturnMock);
-            mockUtils.when(() -> Utils.apiGetCallToGithub(expectedUri2, repoModel.restTemplate)).thenReturn(secondReturnMock);
+        try (MockedStatic<GitHubClient> mockUtils = mockStatic(GitHubClient.class)) {
+            mockUtils.when(() -> GitHubClient.apiGetCallToGithub(expectedUri1, repoModel.restTemplate)).thenReturn(firstReturnMock);
+            mockUtils.when(() -> GitHubClient.apiGetCallToGithub(expectedUri2, repoModel.restTemplate)).thenReturn(secondReturnMock);
 
             repoModel.retrieveBranchesForRepo("testUserName");
         }

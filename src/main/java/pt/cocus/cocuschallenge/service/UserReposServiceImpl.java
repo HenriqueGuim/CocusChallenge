@@ -12,7 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import pt.cocus.cocuschallenge.model.RepoModel;
 import pt.cocus.cocuschallenge.model.User;
 import pt.cocus.cocuschallenge.model.UserDto;
-import pt.cocus.cocuschallenge.utils.Utils;
+import pt.cocus.cocuschallenge.client.GitHubClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -71,7 +71,7 @@ public class UserReposServiceImpl implements UserReposService {
                 GITHUB_API_URL_REPOS.replace("{username}", username),
                 pageNumber));
 
-        ResponseEntity<String> response = Utils.apiGetCallToGithub(uri, restTemplate);
+        ResponseEntity<String> response = GitHubClient.apiGetCallToGithub(uri, restTemplate);
 
         ObjectMapper mapper = new ObjectMapper();
 

@@ -2,7 +2,6 @@ package pt.cocus.cocuschallenge.controllers;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,18 +18,11 @@ public class ReposController {
     private final UserReposServiceImpl userReposService;
 
     @GetMapping
-    public ResponseEntity<?> getRepos(@RequestBody UserDto userDto, @RequestHeader(HttpHeaders.ACCEPT) String accept) {
-
-        if (!accept.equals("*/*") && !accept.equals ("application/json")) {
-            log.error("Header Accept format not compatible");
-            return ResponseEntity
-                    .status(HttpStatus.NOT_ACCEPTABLE)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body("{\"status\": 406, \"Message\":\"Header Accept format not compatible\"}");
-        }
+    public ResponseEntity<?> getRepos(@RequestBody UserDto userDto) {
+        ResponseEntity<?> responseEntity;
         try {
 
-            return ResponseEntity.ok(userReposService.getUserRepos(userDto));
+            responseEntity = ResponseEntity.ok(userReposService.getUserRepos(userDto));
 
 
         } catch (HttpClientErrorException e) {
@@ -58,5 +50,7 @@ public class ReposController {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body("{\"status\": 500, \"Message\":\"Internal Error\"}");
         }
+
+        return responseEntity;
     }
 }
